@@ -9,7 +9,7 @@ const { page, lang } = useData()
     <div class="copyright-inner">
 
       <span v-if="lang === 'ru-RU'">
-        <a href="https://github.com/etephym/docs" target="_blank" rel="noopener noreferrer">Etephym Docs</a>
+        <a href="https://github.com/hametsu-konran/docs" target="_blank" rel="noopener noreferrer">Hametsu Konran Docs</a>
         © 2024–2026,
         <a href="https://github.com/ezrqq" target="_blank" rel="noopener noreferrer">ezrqq / lewisky</a>
         — лицензия
@@ -21,7 +21,7 @@ const { page, lang } = useData()
       </span>
 
       <span v-else-if="lang === 'zh-CN'">
-        <a href="https://github.com/etephym/docs" target="_blank" rel="noopener noreferrer">Etephym Docs</a>
+        <a href="https://github.com/hametsu-konran/docs" target="_blank" rel="noopener noreferrer">Hametsu Konran Docs</a>
         © 2024–2026，
         <a href="https://github.com/ezrqq" target="_blank" rel="noopener noreferrer">ezrqq / lewisky</a>
         — 许可证
@@ -33,7 +33,7 @@ const { page, lang } = useData()
       </span>
 
       <span v-else-if="lang === 'ko-KR'">
-        <a href="https://github.com/etephym/docs" target="_blank" rel="noopener noreferrer">Etephym Docs</a>
+        <a href="https://github.com/hametsu-konran/docs" target="_blank" rel="noopener noreferrer">Hametsu Konran Docs</a>
         © 2024–2026,
         <a href="https://github.com/ezrqq" target="_blank" rel="noopener noreferrer">ezrqq / lewisky</a>
         — 라이선스
@@ -45,7 +45,7 @@ const { page, lang } = useData()
       </span>
 
       <span v-else-if="lang === 'ja-JP'">
-        <a href="https://github.com/etephym/docs" target="_blank" rel="noopener noreferrer">Etephym Docs</a>
+        <a href="https://github.com/hametsu-konran/docs" target="_blank" rel="noopener noreferrer">Hametsu Konran Docs</a>
         © 2024–2026,
         <a href="https://github.com/ezrqq" target="_blank" rel="noopener noreferrer">ezrqq / lewisky</a>
         — ライセンス
@@ -57,7 +57,7 @@ const { page, lang } = useData()
       </span>
 
       <span v-else>
-        <a href="https://github.com/etephym/docs" target="_blank" rel="noopener noreferrer">Etephym Docs</a>
+        <a href="https://github.com/hametsu-konran/docs" target="_blank" rel="noopener noreferrer">Hametsu Konran Docs</a>
         © 2024–2026 by
         <a href="https://github.com/ezrqq" target="_blank" rel="noopener noreferrer">ezrqq / lewisky</a>
         is licensed under
