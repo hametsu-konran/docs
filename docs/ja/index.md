@@ -1,10 +1,10 @@
 ---
 layout: home
-title: Etephym Docs
-description: Etephymによるすべてのゲームのガイド、メカニクス、ヒント
+title: Hametsu Konran Docs
+description: Hametsu Konranによるすべてのゲームのガイド、メカニクス、ヒント
 hero:
   name: "ドキュメント"
-  text: "Etephym Coalition 制作"
+  text: "Hametsu Konran 制作"
   tagline: すべてのゲームのガイド、メカニクス、ヒント
   image:
     dark: /logo.png

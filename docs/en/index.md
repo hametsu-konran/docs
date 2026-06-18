@@ -1,12 +1,12 @@
 ---
 layout: home
 
-title: Etephym Docs
-description: Guides, mechanics and tips for all games by Etephym
+title: Hametsu Konran Docs
+description: Guides, mechanics and tips for all games by Hametsu Konran
 
 hero:
   name: "Documentation"
-  text: "by Etephym Coalition"
+  text: "by Hametsu Konran"
   tagline: Guides, mechanics and tips for all games
   image:
     dark: /logo.png

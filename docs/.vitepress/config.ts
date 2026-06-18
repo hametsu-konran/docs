@@ -283,7 +283,7 @@ const sidebarJa: DefaultTheme.Sidebar = [
 
 const SHARED_THEME = {
   logo:        DEFAULT_LOGO,
-  siteTitle:   'Etephym Docs',
+  siteTitle:   'Hametsu Konran',
   socialLinks: SOCIAL_LINKS,
 }
 
@@ -336,14 +336,14 @@ export default defineConfig({
     root: {
       label:         'English',
       lang:          'en-US',
-      title:         'Etephym Docs',
-      titleTemplate: ':title · Etephym',
-      description:   'Guides, mechanics and tips for all games by Etephym',
+      title:         'Hametsu Konran Docs',
+      titleTemplate: ':title · Hametsu Konran',
+      description:   'Guides, mechanics and tips for all games by Hametsu Konran',
       head: [
         ...SHARED_HEAD,
         ['meta', { property: 'og:url',         content: FULL_URL }],
         ['meta', { property: 'og:locale',      content: 'en_US' }],
-        ['meta', { property: 'og:title',       content: 'Etephym Docs' }],
+        ['meta', { property: 'og:title',       content: 'Hametsu Konran Docs' }],
         ['meta', { property: 'og:description', content: 'Guides, mechanics and tips for all games' }],
       ],
       themeConfig: {
@@ -390,7 +390,7 @@ export default defineConfig({
         docFooter:   { prev: '← Previous', next: 'Next →' },
         lastUpdated: { text: 'Updated', formatOptions: { dateStyle: 'long', timeStyle: 'short' } },
         editLink:    { pattern: EDIT_LINK, text: 'Edit this page on GitHub' },
-        footer:      { message: FOOTER_MESSAGE, copyright: 'Etephym Docs © 2024–2026' },
+        footer:      { message: FOOTER_MESSAGE, copyright: 'Hametsu Konran Docs © 2024–2026' },
       },
     },
 
@@ -399,14 +399,14 @@ export default defineConfig({
       label:         'Русский',
       lang:          'ru-RU',
       link:          '/ru/',
-      title:         'Etephym Docs',
-      titleTemplate: ':title · Etephym',
-      description:   'Гайды, механики и советы по всем играм от Etephym',
+      title:         'Hametsu Konran Docs',
+      titleTemplate: ':title · Hametsu Konran',
+      description:   'Гайды, механики и советы по играм RELL от Hametsu Konran',
       head: [
         ...SHARED_HEAD,
         ['meta', { property: 'og:url',         content: `${FULL_URL}ru/` }],
         ['meta', { property: 'og:locale',      content: 'ru_RU' }],
-        ['meta', { property: 'og:title',       content: 'Etephym Docs' }],
+        ['meta', { property: 'og:title',       content: 'Hametsu Konran Docs' }],
         ['meta', { property: 'og:description', content: 'Гайды, механики и советы по всем играм' }],
         ['meta', { name: 'robots',             content: 'noindex' }],
       ],
@@ -454,19 +454,19 @@ export default defineConfig({
         docFooter:   { prev: '← Предыдущая', next: 'Следующая →' },
         lastUpdated: { text: 'Обновлено', formatOptions: { dateStyle: 'long', timeStyle: 'short' } },
         editLink:    { pattern: EDIT_LINK, text: 'Редактировать на GitHub' },
-        footer:      { message: FOOTER_MESSAGE, copyright: 'Etephym Docs © 2024–2026' },
+        footer:      { message: FOOTER_MESSAGE, copyright: 'Hametsu Konran Docs © 2024–2026' },
       },
     },
 
     zh: {
       label: '中文', lang: 'zh-CN', link: '/zh/',
-      title: 'RELL Games Docs', titleTemplate: ':title · Etephym',
-      description: 'RELL Games 游戏攻略、评级列表与机制说明，由 Etephym 制作',
+      title: 'RELL Games Docs', titleTemplate: ':title · Hametsu Konran',
+      description: 'RELL Games 游戏攻略、评级列表与机制说明，由 Hametsu Konran 制作',
       head: [
         ...SHARED_HEAD,
         ['meta', { property: 'og:url',         content: `${FULL_URL}zh/` }],
         ['meta', { property: 'og:locale',      content: 'zh_CN' }],
-        ['meta', { property: 'og:title',       content: 'Etephym Docs' }],
+        ['meta', { property: 'og:title',       content: 'Hametsu Konran Docs' }],
         ['meta', { property: 'og:description', content: '所有游戏的攻略、机制与技巧' }],
         ['meta', { name: 'robots',             content: 'noindex' }],
       ],
@@ -498,19 +498,19 @@ export default defineConfig({
         docFooter: { prev: '← 上一页', next: '下一页 →' },
         lastUpdated: { text: '更新于', formatOptions: { dateStyle: 'long', timeStyle: 'short' } },
         editLink: { pattern: EDIT_LINK, text: '在 GitHub 上编辑此页' },
-        footer: { message: FOOTER_MESSAGE, copyright: 'Etephym Docs © 2024–2026' },
+        footer: { message: FOOTER_MESSAGE, copyright: 'Hametsu Konran Docs © 2024–2026' },
       },
     },
 
     ko: {
       label: '한국어', lang: 'ko-KR', link: '/ko/',
-      title: 'RELL Games Docs', titleTemplate: ':title · Etephym',
-      description: 'Etephym이 제작한 RELL Games 가이드, 티어 리스트 및 게임 메커니즘',
+      title: 'RELL Games Docs', titleTemplate: ':title · Hametsu Konran',
+      description: 'Hametsu Konran이 제작한 RELL Games 가이드, 티어 리스트 및 게임 메커니즘',
       head: [
         ...SHARED_HEAD,
         ['meta', { property: 'og:url',         content: `${FULL_URL}ko/` }],
         ['meta', { property: 'og:locale',      content: 'ko_KR' }],
-        ['meta', { property: 'og:title',       content: 'Etephym Docs' }],
+        ['meta', { property: 'og:title',       content: 'Hametsu Konran Docs' }],
         ['meta', { property: 'og:description', content: '모든 게임 가이드 및 메커니즘' }],
         ['meta', { name: 'robots',             content: 'noindex' }],
       ],
@@ -542,20 +542,20 @@ export default defineConfig({
         docFooter: { prev: '← 이전', next: '다음 →' },
         lastUpdated: { text: '업데이트됨', formatOptions: { dateStyle: 'long', timeStyle: 'short' } },
         editLink: { pattern: EDIT_LINK, text: 'GitHub에서 이 페이지 편집' },
-        footer: { message: FOOTER_MESSAGE, copyright: 'Etephym Docs © 2024–2026' },
+        footer: { message: FOOTER_MESSAGE, copyright: 'Hametsu Konran Docs © 2024–2026' },
       },
     },
 
     ja: {
       label: '日本語', lang: 'ja-JP', link: '/ja/',
-      title: 'RELL Games Docs', titleTemplate: ':title · Etephym',
-      description: 'EtephymによるRELL Gamesのガイド、ティアリスト、ゲームメカニクス解説',
+      title: 'RELL Games Docs', titleTemplate: ':title · Hametsu Konran',
+      description: 'Hametsu KonranによるRELL Gamesのガイド、ティアリスト、ゲームメカニクス解説',
       head: [
         ...SHARED_HEAD,
         ['meta', { property: 'og:url',         content: `${FULL_URL}ja/` }],
         ['meta', { property: 'og:locale',      content: 'ja_JP' }],
-        ['meta', { property: 'og:title',       content: 'Etephym Docs' }],
-        ['meta', { property: 'og:description', content: 'すべてのゲームのガイドとメカニクスをEtephymが解説' }],
+        ['meta', { property: 'og:title',       content: 'Hametsu Konran Docs' }],
+        ['meta', { property: 'og:description', content: 'すべてのゲームのガイドとメカニクスをHametsu Konranが解説' }],
         ['meta', { name: 'robots',             content: 'noindex' }],
       ],
       themeConfig: {
@@ -586,7 +586,7 @@ export default defineConfig({
         docFooter: { prev: '← 前へ', next: '次へ →' },
         lastUpdated: { text: '更新日', formatOptions: { dateStyle: 'long', timeStyle: 'short' } },
         editLink: { pattern: EDIT_LINK, text: 'GitHubでこのページを編集' },
-        footer: { message: FOOTER_MESSAGE, copyright: 'Etephym Docs © 2024–2026' },
+        footer: { message: FOOTER_MESSAGE, copyright: 'Hametsu Konran Docs © 2024–2026' },
       },
     },
   },

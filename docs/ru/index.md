@@ -1,12 +1,12 @@
 ---
 layout: home
 
-title: Etephym Docs
-description: Гайды, механики и советы по всем играм от Etephym
+title: Hametsu Konran Docs
+description: Гайды, механики и советы по всем играм от Hametsu Konran
 
 hero:
   name: "Документация"
-  text: "от Etephym Coalition"
+  text: "от Hametsu Konran"
   tagline: Гайды, механики и советы по всем играм
   image:
     dark: /logo.png
