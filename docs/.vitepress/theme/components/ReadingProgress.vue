@@ -1,69 +1,49 @@
 <script setup lang="ts">
-// ---------------------------------------------------------------------------
-// Imports
-// ---------------------------------------------------------------------------
-
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useData, useRoute } from 'vitepress'
-import { isRussianPath } from '../utils/routing'
+import { getLocalePrefix, normalizeBase } from '../utils/routing'
 
-// ---------------------------------------------------------------------------
-// SVG ring constants — fixed values derived from the component size
-// ---------------------------------------------------------------------------
+const SIZE   = 48
+const RADIUS = 20
+const CIRCUM = 2 * Math.PI * RADIUS
 
-const SIZE   = 48                   // width & height of the SVG in px
-const RADIUS = 20                   // circle radius in px
-const CIRCUM = 2 * Math.PI * RADIUS // full circumference used for stroke-dasharray
+const progress = ref(0)
+const visible  = ref(false)
+const idle     = ref(false)
 
-// ---------------------------------------------------------------------------
-// Reactive state
-// ---------------------------------------------------------------------------
-
-const progress = ref(0)   // 0–100 scroll percentage
-const visible  = ref(false) // whether the button is shown
-const idle     = ref(false) // true after 3 s of no scrolling → shows arrow icon
-
-// ---------------------------------------------------------------------------
-// Route & locale
-// ---------------------------------------------------------------------------
-
-const route = useRoute()
+const route    = useRoute()
 const { site } = useData()
-const isRu  = computed(() => isRussianPath(route.path, site.value.base))
 
-/** Tooltip / aria-label text — switches between percentage and "back to top". */
-const titleLabel = computed(() =>
-  idle.value
-    ? (isRu.value ? 'Наверх' : 'Back to top')
-    : `${progress.value}% ${isRu.value ? 'прочитано' : 'read'}`
-)
+const LABELS: Record<string, { read: string; top: string }> = {
+  ru: { read: 'прочитано', top: 'Наверх' },
+  zh: { read: '已阅读',    top: '返回顶部' },
+  ko: { read: '읽음',      top: '맨 위로' },
+  ja: { read: '読了',      top: 'トップへ' },
+  en: { read: 'read',      top: 'Back to top' },
+}
 
-// ---------------------------------------------------------------------------
-// Scroll tracking state — plain vars (no reactivity overhead needed)
-// ---------------------------------------------------------------------------
+const locale = computed(() => getLocalePrefix(route.path, normalizeBase(site.value.base)) ?? 'en')
+
+const titleLabel = computed(() => {
+  const l = LABELS[locale.value] ?? LABELS.en
+  return idle.value ? l.top : `${progress.value}% ${l.read}`
+})
 
 let idleTimer: ReturnType<typeof setTimeout> | null = null
-let total      = 0  // scrollable distance in px
-let lastScroll = -1 // previous scrollY value; -1 forces a recalculation
+let total      = 0
+let lastScroll = -1
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/** Recalculates the total scrollable distance of the current page. */
 function calcTotal(): void {
   const docEl = document.querySelector('.vp-doc')
   total = docEl
-    // Accurate formula that accounts for sticky header offset
     ? docEl.scrollHeight - window.innerHeight + docEl.getBoundingClientRect().top + window.scrollY
     : document.documentElement.scrollHeight - window.innerHeight
-  lastScroll = -1 // force update on next scroll event
+  lastScroll = -1
 }
 
-/** Called on every scroll event; updates progress and visibility. */
 function update(): void {
   const scrollY = window.scrollY
-  if (scrollY === lastScroll) return // skip if position hasn't changed
+  if (scrollY === lastScroll) return
   lastScroll = scrollY
 
   progress.value = total <= 0 || scrollY <= 0
@@ -73,29 +53,18 @@ function update(): void {
   visible.value = scrollY > 100
   if (idle.value) idle.value = false
 
-  // Switch to arrow icon after 3 s of inactivity
   if (idleTimer) clearTimeout(idleTimer)
   idleTimer = setTimeout(() => { idle.value = true }, 3000)
 }
 
-/** Recalculates on viewport resize (e.g. rotating phone, opening DevTools). */
 function onResize(): void { calcTotal(); update() }
 
-/** Scrolls back to the top of the page, respecting prefers-reduced-motion. */
 function scrollToTop(): void {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' })
 }
 
-// ---------------------------------------------------------------------------
-// SVG helper — computes the stroke-dashoffset for a given percentage
-// ---------------------------------------------------------------------------
-
 const strokeOffset = (pct: number) => CIRCUM - (pct / 100) * CIRCUM
-
-// ---------------------------------------------------------------------------
-// Lifecycle — reset state on route change and register scroll/resize listeners
-// ---------------------------------------------------------------------------
 
 watch(() => route.path, () => {
   progress.value = 0
@@ -103,8 +72,6 @@ watch(() => route.path, () => {
   idle.value     = false
   lastScroll     = -1
   if (idleTimer) { clearTimeout(idleTimer); idleTimer = null }
-  // Double rAF: first frame lets Vue update the DOM, second lets the browser
-  // perform layout so getBoundingClientRect() returns accurate values
   requestAnimationFrame(() => requestAnimationFrame(() => { calcTotal(); update() }))
 })
 
@@ -135,14 +102,8 @@ onUnmounted(() => {
       @keydown.enter.prevent="scrollToTop"
       @keydown.space.prevent="scrollToTop"
     >
-      <!-- SVG progress ring -->
       <svg :width="SIZE" :height="SIZE" class="rp-ring" aria-hidden="true">
-        <!-- Track circle (background) -->
-        <circle
-          :cx="SIZE / 2" :cy="SIZE / 2" :r="RADIUS"
-          fill="none" stroke="rgba(84,160,255,0.12)" stroke-width="2.5"
-        />
-        <!-- Progress arc -->
+        <circle :cx="SIZE / 2" :cy="SIZE / 2" :r="RADIUS" fill="none" stroke="rgba(84,160,255,0.12)" stroke-width="2.5" />
         <circle
           :cx="SIZE / 2" :cy="SIZE / 2" :r="RADIUS"
           fill="none" stroke="#54a0ff" stroke-width="2.5"
@@ -154,12 +115,10 @@ onUnmounted(() => {
         />
       </svg>
 
-      <!-- Centre content: percentage or back-to-top arrow -->
       <Transition name="icon-swap" mode="out-in">
         <span v-if="!idle" key="pct" class="rp-label">{{ progress }}%</span>
         <span v-else key="arrow" class="rp-arrow">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
             <polyline points="18 15 12 9 6 15"/>
           </svg>
         </span>
@@ -169,7 +128,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* ── Circular button wrapper ─────────────────────────────────────────────── */
 .rp-wrap {
   position:        fixed;
   bottom:          28px;
@@ -188,30 +146,24 @@ onUnmounted(() => {
   transition:      box-shadow 0.2s ease;
 }
 
-/* ── Light mode overrides ────────────────────────────────────────────────── */
-html:not(.dark) .rp-wrap       { background: rgba(255,255,255,0.95); box-shadow: 0 0 12px rgba(0,0,0,0.08); }
-.rp-wrap:hover                  { box-shadow: 0 0 22px rgba(84,160,255,0.35); }
-html:not(.dark) .rp-wrap:hover  { box-shadow: 0 0 22px rgba(37,99,235,0.25); }
+html:not(.dark) .rp-wrap      { background: rgba(255,255,255,0.95); box-shadow: 0 0 12px rgba(0,0,0,0.08); }
+.rp-wrap:hover                 { box-shadow: 0 0 22px rgba(84,160,255,0.35); }
+html:not(.dark) .rp-wrap:hover { box-shadow: 0 0 22px rgba(37,99,235,0.25); }
 
-/* ── SVG ring ────────────────────────────────────────────────────────────── */
 .rp-ring { position: absolute; inset: 0; overflow: visible; }
 .rp-arc  { transition: none; }
 
-/* ── Percentage label ────────────────────────────────────────────────────── */
-.rp-label                   { font-size: 11px; font-weight: 600; color: #54a0ff; line-height: 1; }
-html:not(.dark) .rp-label   { color: #2563eb; }
+.rp-label                  { font-size: 11px; font-weight: 600; color: #54a0ff; line-height: 1; }
+html:not(.dark) .rp-label  { color: #2563eb; }
 
-/* ── Arrow icon ──────────────────────────────────────────────────────────── */
-.rp-arrow                   { display: flex; align-items: center; color: #54a0ff; }
-html:not(.dark) .rp-arrow   { color: #2563eb; }
+.rp-arrow                  { display: flex; align-items: center; color: #54a0ff; }
+html:not(.dark) .rp-arrow  { color: #2563eb; }
 
-/* ── Percentage ↔ arrow swap transition ──────────────────────────────────── */
 .icon-swap-enter-active,
 .icon-swap-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
 .icon-swap-enter-from   { opacity: 0; transform: translateY(4px);  }
 .icon-swap-leave-to     { opacity: 0; transform: translateY(-4px); }
 
-/* ── Button appear / disappear transition ────────────────────────────────── */
 .progress-fade-enter-active,
 .progress-fade-leave-active { transition: opacity 0.25s ease, transform 0.25s ease; }
 .progress-fade-enter-from,

@@ -1,39 +1,23 @@
 <script setup lang="ts">
-// ---------------------------------------------------------------------------
-// Imports
-// ---------------------------------------------------------------------------
-
 import { computed, onMounted, onUnmounted, watch } from 'vue'
 import { useData, useRoute } from 'vitepress'
-import { isRussianPath } from '../utils/routing'
+import { getLocalePrefix, normalizeBase } from '../utils/routing'
 
-// ---------------------------------------------------------------------------
-// Route & locale
-// ---------------------------------------------------------------------------
-
-const route = useRoute()
+const route    = useRoute()
 const { site } = useData()
 
-const isRu = computed(() => isRussianPath(route.path, site.value.base))
+const LABELS: Record<string, { copy: string; aria: string; copied: string }> = {
+  ru: { copy: 'Скопировать ссылку', aria: 'Скопировать ссылку на заголовок', copied: 'Скопировано!' },
+  zh: { copy: '复制链接',           aria: '复制标题链接',                     copied: '已复制！' },
+  ko: { copy: '링크 복사',          aria: '제목 링크 복사',                   copied: '복사됨!' },
+  ja: { copy: 'リンクをコピー',     aria: '見出しリンクをコピー',             copied: 'コピー済み！' },
+  en: { copy: 'Copy link',          aria: 'Copy link to heading',            copied: 'Copied!' },
+}
 
-// ---------------------------------------------------------------------------
-// Label helpers — derived from current route locale
-// ---------------------------------------------------------------------------
-
-const labelCopy   = () => isRu.value ? 'Скопировать ссылку'            : 'Copy link'
-const labelAria   = () => isRu.value ? 'Скопировать ссылку на заголовок' : 'Copy link to heading'
-const labelCopied = () => isRu.value ? 'Скопировано!'              : 'Copied!'
-
-// ---------------------------------------------------------------------------
-// Handler registry — tracks buttons so they can be removed on cleanup
-// ---------------------------------------------------------------------------
+const locale = computed(() => getLocalePrefix(route.path, normalizeBase(site.value.base)) ?? 'en')
 
 interface Handler { el: HTMLElement; fn: () => void }
 let handlers: Handler[] = []
-
-// ---------------------------------------------------------------------------
-// Cleanup — removes all injected buttons and detaches their listeners
-// ---------------------------------------------------------------------------
 
 function cleanup(): void {
   for (const { el, fn } of handlers) el.removeEventListener('click', fn)
@@ -41,31 +25,19 @@ function cleanup(): void {
   document.querySelectorAll('.copy-heading-btn').forEach(el => el.remove())
 }
 
-// ---------------------------------------------------------------------------
-// Clipboard helper
-// ---------------------------------------------------------------------------
-
 async function copyText(text: string): Promise<boolean> {
   try {
     await navigator.clipboard.writeText(text)
     return true
   } catch {
-    return false // clipboard API unavailable (e.g. non-HTTPS)
+    return false
   }
 }
-
-// ---------------------------------------------------------------------------
-// Init — injects a copy button into every h2/h3 that has an id
-// ---------------------------------------------------------------------------
 
 function init(): void {
   cleanup()
 
-  const copy   = labelCopy()
-  const aria   = labelAria()
-  const copied = labelCopied()
-
-  // Build the base URL once so each button doesn't re-read location.*
+  const l    = LABELS[locale.value] ?? LABELS.en
   const base = window.location.origin + window.location.pathname.replace(/\/$/, '')
 
   document.querySelectorAll<HTMLElement>('.vp-doc h2, .vp-doc h3').forEach(heading => {
@@ -75,16 +47,15 @@ function init(): void {
     const btn = document.createElement('button')
     btn.type           = 'button'
     btn.className      = 'copy-heading-btn'
-    btn.title          = copy
-    btn.dataset.copied = copied // used by the CSS ::after tooltip
-    btn.setAttribute('aria-label', aria)
+    btn.title          = l.copy
+    btn.dataset.copied = l.copied
+    btn.setAttribute('aria-label', l.aria)
     btn.innerHTML =
       `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">` +
         `<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>` +
         `<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>` +
       `</svg>`
 
-    // Each button has its own timer in the closure — concurrent clicks work independently
     let btnTimer: ReturnType<typeof setTimeout> | null = null
     const fn = async () => {
       const ok = await copyText(`${base}#${id}`)
@@ -103,26 +74,20 @@ function init(): void {
   })
 }
 
-// ---------------------------------------------------------------------------
-// Lifecycle
-// ---------------------------------------------------------------------------
-
 onMounted(() => { requestAnimationFrame(init) })
 watch(() => route.path.split('#')[0], () => { requestAnimationFrame(init) })
 onUnmounted(cleanup)
 </script>
 
-<!-- Render nothing visible — this component only manipulates the DOM -->
 <template><span aria-hidden="true" /></template>
 
 <style>
-/* ── Button base ─────────────────────────────────────────────────────────── */
 .copy-heading-btn {
   display:        inline-flex;
   align-items:    center;
   margin-left:    8px;
   padding:        2px 4px;
-  color:          transparent; /* hidden until the heading is hovered */
+  color:          transparent;
   cursor:         pointer;
   border-radius:  4px;
   vertical-align: middle;
@@ -132,15 +97,12 @@ onUnmounted(cleanup)
   background:     transparent;
 }
 
-/* ── Reveal icon on heading hover ────────────────────────────────────────── */
 h2:hover .copy-heading-btn,
 h3:hover .copy-heading-btn     { color: rgba(84,160,255,0.5); }
 
-/* ── Full opacity on button focus / hover ────────────────────────────────── */
 .copy-heading-btn:hover,
 .copy-heading-btn:focus-visible { color: rgba(84,160,255,1) !important; outline: none; }
 
-/* ── "Copied!" tooltip (dark mode) ──────────────────────────────────────── */
 .copy-heading-btn::after {
   content:        attr(data-copied);
   position:       absolute;
@@ -162,7 +124,6 @@ h3:hover .copy-heading-btn     { color: rgba(84,160,255,0.5); }
   transition:     opacity 0.2s ease;
 }
 
-/* ── "Copied!" tooltip (light mode) ─────────────────────────────────────── */
 html:not(.dark) .copy-heading-btn::after {
   background:   #ffffff;
   border-color: rgba(0,0,0,0.15);
@@ -170,6 +131,5 @@ html:not(.dark) .copy-heading-btn::after {
   box-shadow:   0 0 10px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.1);
 }
 
-/* ── Show tooltip when the .copied class is present ─────────────────────── */
 .copy-heading-btn.copied::after { opacity: 1; }
 </style>

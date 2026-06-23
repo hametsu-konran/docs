@@ -1,55 +1,35 @@
 import { AUDIO_SRC } from '../site.config'
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
 const POS_KEY = 'mp-pos'
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
 
 type Labels = { idle: string; playing: string; play: string; pause: string }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/** Returns locale-specific UI strings based on the current URL path. */
-function getLabels(isRu: boolean): Labels {
-  return isRu
-    ? { idle: 'Фоновая музыка', playing: 'Играет...', play: 'Играть', pause: 'Пауза'  }
-    : { idle: 'Background music', playing: 'Playing...', play: 'Play', pause: 'Pause' }
+const LABELS: Record<string, Labels> = {
+  ru: { idle: 'Фоновая музыка', playing: 'Играет...', play: 'Играть', pause: 'Пауза' },
+  zh: { idle: '背景音乐',       playing: '播放中...',  play: '播放',   pause: '暂停' },
+  ko: { idle: '배경 음악',      playing: '재생 중...',  play: '재생',   pause: '일시정지' },
+  ja: { idle: 'BGM',            playing: '再生中...',   play: '再生',   pause: '一時停止' },
+  en: { idle: 'Background music', playing: 'Playing...', play: 'Play', pause: 'Pause' },
 }
 
-/** True when the visitor is on the Russian locale (no /en/ in path). */
-function isRuLocale(): boolean {
-  return window.location.pathname.includes('/ru/')
+function getLocale(): string {
+  const seg = window.location.pathname.split('/')[1]
+  return seg in LABELS ? seg : 'en'
 }
 
-/** Clamps a number between min and max. */
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
 }
 
-// ---------------------------------------------------------------------------
-// Main setup — called once on app mount; guard prevents double-init
-// ---------------------------------------------------------------------------
-
 export function setupMusicPlayer(): void {
   if (document.getElementById('mp-root')) return
-
-  // ── Audio element ──────────────────────────────────────────────────────────
 
   const audio   = new Audio(AUDIO_SRC)
   audio.loop    = true
   audio.volume  = 0.5
-  audio.preload = 'none' // do not download until the user presses Play
+  audio.preload = 'none'
 
   let isPlaying = false
-
-  // ── Build DOM ──────────────────────────────────────────────────────────────
 
   const root = document.createElement('div')
   root.id    = 'mp-root'
@@ -71,14 +51,11 @@ export function setupMusicPlayer(): void {
 
   document.body.appendChild(root)
 
-  // Cache element references right after appending — guaranteed to exist
   const widget   = document.getElementById('mp-widget')    as HTMLElement
   const btn      = document.getElementById('mp-btn')       as HTMLButtonElement
   const sub      = document.getElementById('mp-sub')       as HTMLSpanElement
   const iconPlay = document.getElementById('mp-icon-play') as HTMLElement
   const iconBars = document.getElementById('mp-icon-bars') as HTMLElement
-
-  // ── Restore saved drag position from localStorage ─────────────────────────
 
   try {
     const saved = localStorage.getItem(POS_KEY)
@@ -86,20 +63,15 @@ export function setupMusicPlayer(): void {
       const { left, top } = JSON.parse(saved) as { left: number; top: number }
       root.style.bottom = 'auto'
       root.style.right  = 'auto'
-      // Clamp to current viewport in case screen size changed since last visit.
-      // offsetWidth may be 0 if layout hasn't occurred yet — fall back to 220px
       const w = root.offsetWidth  || 220
       const h = root.offsetHeight || 60
-      root.style.left   = clamp(left, 0, window.innerWidth  - w) + 'px'
-      root.style.top    = clamp(top,  0, window.innerHeight - h) + 'px'
+      root.style.left = clamp(left, 0, window.innerWidth  - w) + 'px'
+      root.style.top  = clamp(top,  0, window.innerHeight - h) + 'px'
     }
-  } catch { /* ignore corrupt / missing storage value */ }
+  } catch {}
 
-  // ── Label helpers ──────────────────────────────────────────────────────────
-
-  /** Syncs all text and aria attributes to the current locale + play state. */
   function applyLabels(): void {
-    const l         = getLabels(isRuLocale())
+    const l         = LABELS[getLocale()]
     sub.textContent = isPlaying ? l.playing : l.idle
     const btnLabel  = isPlaying ? l.pause   : l.play
     btn.title       = btnLabel
@@ -108,7 +80,6 @@ export function setupMusicPlayer(): void {
 
   applyLabels()
 
-  /** Switches play/pause visual state and updates labels. */
   function setPlaying(val: boolean): void {
     isPlaying              = val
     iconPlay.style.display = val ? 'none'        : 'block'
@@ -117,31 +88,22 @@ export function setupMusicPlayer(): void {
     applyLabels()
   }
 
-  // ── Drag state — declared before any event listeners that reference them ───
-
   let dragging = false
-  let didDrag  = false // true when pointer moved > 3px — prevents ghost click after drag
+  let didDrag  = false
   let startX = 0, startY = 0, origLeft = 0, origTop = 0
 
-  // ── Playback ───────────────────────────────────────────────────────────────
-
   btn.addEventListener('click', () => {
-    if (didDrag) return // ignore click that immediately follows a drag gesture
-
+    if (didDrag) return
     if (isPlaying) {
       audio.pause()
       setPlaying(false)
     } else {
-      // Set playing optimistically, revert on error (e.g. autoplay policy block)
       setPlaying(true)
       audio.play().catch(() => { setPlaying(false) })
     }
   })
 
-  // Reset visual state if the audio file fails to load at any point
   audio.addEventListener('error', () => { setPlaying(false) })
-
-  // ── Drag helpers ──────────────────────────────────────────────────────────
 
   function dragStart(clientX: number, clientY: number): void {
     const rect            = root.getBoundingClientRect()
@@ -151,7 +113,7 @@ export function setupMusicPlayer(): void {
     startY                = clientY
     origLeft              = rect.left
     origTop               = rect.top
-    root.style.transition = 'none' // disable CSS transitions while dragging
+    root.style.transition = 'none'
     root.style.bottom     = 'auto'
     root.style.right      = 'auto'
     root.style.left       = origLeft + 'px'
@@ -163,9 +125,7 @@ export function setupMusicPlayer(): void {
     if (!dragging) return
     const dx = clientX - startX
     const dy = clientY - startY
-    // Mark as a drag only after the pointer moves more than 3 px
     if (!didDrag && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) didDrag = true
-    // Clamp inside viewport bounds
     root.style.left = clamp(origLeft + dx, 0, window.innerWidth  - root.offsetWidth)  + 'px'
     root.style.top  = clamp(origTop  + dy, 0, window.innerHeight - root.offsetHeight) + 'px'
   }
@@ -173,24 +133,18 @@ export function setupMusicPlayer(): void {
   function dragEnd(): void {
     if (!dragging) return
     dragging              = false
-    root.style.transition = '' // re-enable CSS transitions
+    root.style.transition = ''
     root.classList.remove('dragging')
-    // Persist the new position so it survives page refreshes
     try {
       localStorage.setItem(POS_KEY, JSON.stringify({
         left: parseFloat(root.style.left),
         top:  parseFloat(root.style.top),
       }))
-    } catch { /* ignore */ }
-    // Defer reset so the click handler can still read didDrag === true
+    } catch {}
     requestAnimationFrame(() => { didDrag = false })
   }
 
-  // ── Viewport resize — re-clamp widget position so it never leaves the viewport
-
   function onResize(): void {
-    // Always read current position from the rendered box — works regardless of
-    // whether position was set via inline style or CSS default
     const rect = root.getBoundingClientRect()
     root.style.bottom = 'auto'
     root.style.right  = 'auto'
@@ -198,21 +152,16 @@ export function setupMusicPlayer(): void {
     root.style.top    = clamp(rect.top,  0, window.innerHeight - root.offsetHeight) + 'px'
   }
 
-  // ── Mouse drag events ─────────────────────────────────────────────────────
-
   widget.addEventListener('mousedown', (e: MouseEvent) => {
     if ((e.target as HTMLElement).closest('#mp-btn')) return
     dragStart(e.clientX, e.clientY)
   })
 
-  // Named references required — anonymous functions cannot be removed with removeEventListener
   const onMouseMove = (e: MouseEvent) => dragMove(e.clientX, e.clientY)
   const onMouseUp   = ()              => dragEnd()
 
   document.addEventListener('mousemove', onMouseMove)
   document.addEventListener('mouseup',   onMouseUp)
-
-  // ── Touch drag events ─────────────────────────────────────────────────────
 
   widget.addEventListener('touchstart', (e: TouchEvent) => {
     if ((e.target as HTMLElement).closest('#mp-btn')) return
@@ -221,7 +170,7 @@ export function setupMusicPlayer(): void {
 
   const onTouchMove = (e: TouchEvent) => {
     if (!dragging) return
-    e.preventDefault() // prevent page scroll while dragging the widget
+    e.preventDefault()
     dragMove(e.touches[0].clientX, e.touches[0].clientY)
   }
   const onTouchEnd = () => dragEnd()
@@ -230,16 +179,8 @@ export function setupMusicPlayer(): void {
   document.addEventListener('touchend',  onTouchEnd)
   window.addEventListener('resize', onResize, { passive: true })
 
-  // ── Locale observer — updates labels when the user switches language ───────
-
   const langObserver = new MutationObserver(applyLabels)
-  langObserver.observe(document.documentElement, {
-    attributes:      true,
-    attributeFilter: ['lang'],
-  })
-
-  // ── Self-cleanup when the widget is removed from the DOM ──────────────────
-  // Uses named function references so removeEventListener actually works
+  langObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] })
 
   const bodyObserver = new MutationObserver(() => {
     if (document.getElementById('mp-root')) return

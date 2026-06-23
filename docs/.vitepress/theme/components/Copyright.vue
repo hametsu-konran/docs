@@ -1,73 +1,36 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useData } from 'vitepress'
 
-const { page, lang } = useData()
+const { lang } = useData()
+
+const CC_ICONS = ['cc', 'by', 'nc', 'sa']
+
+const LOCALE: Record<string, { by: string; connector: string }> = {
+  'en-US': { by: 'by ',    connector: '— is licensed under' },
+  'ru-RU': { by: '',       connector: '— публикуется по лицензии' },
+  'zh-CN': { by: '作者 ', connector: '— 采用' },
+  'ko-KR': { by: '',       connector: '—' },
+  'ja-JP': { by: '',       connector: '—' },
+}
+
+const locale = computed(() => LOCALE[lang.value] ?? LOCALE['en-US'])
 </script>
 
 <template>
-  <div v-if="page.filePath" class="copyright-block">
+  <div class="copyright-block">
     <div class="copyright-inner">
-
-      <span v-if="lang === 'ru-RU'">
-        <a href="https://github.com/hametsu-konran/docs" target="_blank" rel="noopener noreferrer">Hametsu Konran Docs</a>
-        © 2024–2026,
-        <a href="https://github.com/ezrqq" target="_blank" rel="noopener noreferrer">ezrqq / lewisky</a>
-        — лицензия
-        <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-NC-SA 4.0</a>
-        <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="CC" />
-        <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="BY" />
-        <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="NC" />
-        <img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="SA" />
-      </span>
-
-      <span v-else-if="lang === 'zh-CN'">
-        <a href="https://github.com/hametsu-konran/docs" target="_blank" rel="noopener noreferrer">Hametsu Konran Docs</a>
-        © 2024–2026，
-        <a href="https://github.com/ezrqq" target="_blank" rel="noopener noreferrer">ezrqq / lewisky</a>
-        — 许可证
-        <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-NC-SA 4.0</a>
-        <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="CC" />
-        <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="BY" />
-        <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="NC" />
-        <img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="SA" />
-      </span>
-
-      <span v-else-if="lang === 'ko-KR'">
-        <a href="https://github.com/hametsu-konran/docs" target="_blank" rel="noopener noreferrer">Hametsu Konran Docs</a>
-        © 2024–2026,
-        <a href="https://github.com/ezrqq" target="_blank" rel="noopener noreferrer">ezrqq / lewisky</a>
-        — 라이선스
-        <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-NC-SA 4.0</a>
-        <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="CC" />
-        <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="BY" />
-        <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="NC" />
-        <img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="SA" />
-      </span>
-
-      <span v-else-if="lang === 'ja-JP'">
-        <a href="https://github.com/hametsu-konran/docs" target="_blank" rel="noopener noreferrer">Hametsu Konran Docs</a>
-        © 2024–2026,
-        <a href="https://github.com/ezrqq" target="_blank" rel="noopener noreferrer">ezrqq / lewisky</a>
-        — ライセンス
-        <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-NC-SA 4.0</a>
-        <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="CC" />
-        <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="BY" />
-        <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="NC" />
-        <img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="SA" />
-      </span>
-
-      <span v-else>
-        <a href="https://github.com/hametsu-konran/docs" target="_blank" rel="noopener noreferrer">Hametsu Konran Docs</a>
-        © 2024–2026 by
-        <a href="https://github.com/ezrqq" target="_blank" rel="noopener noreferrer">ezrqq / lewisky</a>
-        is licensed under
-        <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-NC-SA 4.0</a>
-        <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="CC" />
-        <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="BY" />
-        <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="NC" />
-        <img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="SA" />
-      </span>
-
+      <a href="https://github.com/hametsu-konran/docs" target="_blank" rel="noopener noreferrer">Hametsu Konran Docs</a>
+      © 2024–2026,
+      {{ locale.by }}<a href="https://github.com/ezrqq" target="_blank" rel="noopener noreferrer">ezrqq / lewisky</a>
+      {{ locale.connector }}
+      <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-NC-SA 4.0</a>
+      <img
+        v-for="icon in CC_ICONS"
+        :key="icon"
+        :src="`https://mirrors.creativecommons.org/presskit/icons/${icon}.svg`"
+        :alt="icon.toUpperCase()"
+      />
     </div>
   </div>
 </template>

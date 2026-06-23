@@ -1,58 +1,29 @@
 <script setup lang="ts">
-// ---------------------------------------------------------------------------
-// Imports
-// ---------------------------------------------------------------------------
-
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useData, useRoute } from 'vitepress'
 import { isHomePath } from '../utils/routing'
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-const CLICKS_NEEDED = 7     // clicks on the hero image required to trigger
-const RESET_DELAY   = 10000 // ms — counter resets after this idle period
+const CLICKS_NEEDED = 7
+const RESET_DELAY   = 10000
 const TARGET_URL    = 'https://youtu.be/dQw4w9WgXcQ?si=3-SKpSMGFYWdsQlA'
-
-// ---------------------------------------------------------------------------
-// Route & site
-// ---------------------------------------------------------------------------
 
 const route    = useRoute()
 const { site } = useData()
-
-// ---------------------------------------------------------------------------
-// State
-// ---------------------------------------------------------------------------
 
 let count      = 0
 let resetTimer: ReturnType<typeof setTimeout> | null = null
 let active     = false
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Opens the URL in a new tab using a temporary <a> element.
- * More reliable than window.open on mobile browsers (Firefox Android),
- * which may try to navigate the current tab instead of opening a new one.
- */
 function openInNewTab(url: string): void {
-  const a = document.createElement('a')
-  a.href        = url
-  a.target      = '_blank'
-  a.rel         = 'noopener noreferrer'
+  const a         = document.createElement('a')
+  a.href          = url
+  a.target        = '_blank'
+  a.rel           = 'noopener noreferrer'
   a.style.display = 'none'
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
 }
-
-// ---------------------------------------------------------------------------
-// Document-level click handler (event delegation)
-// ---------------------------------------------------------------------------
 
 function onDocumentClick(e: MouseEvent): void {
   if (!active) return
@@ -68,10 +39,6 @@ function onDocumentClick(e: MouseEvent): void {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Activate / deactivate based on current route
-// ---------------------------------------------------------------------------
-
 function activate(): void {
   active = isHomePath(route.path, site.value.base)
   if (!active) {
@@ -79,10 +46,6 @@ function activate(): void {
     if (resetTimer) { clearTimeout(resetTimer); resetTimer = null }
   }
 }
-
-// ---------------------------------------------------------------------------
-// Lifecycle
-// ---------------------------------------------------------------------------
 
 onMounted(() => {
   activate()

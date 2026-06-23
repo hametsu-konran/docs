@@ -1,78 +1,48 @@
 <script setup lang="ts">
-// ---------------------------------------------------------------------------
-// Imports
-// ---------------------------------------------------------------------------
-
 import { computed } from 'vue'
 import { useData, useRoute, useRouter } from 'vitepress'
-import { isRussianPath, normalizeBase } from '../utils/routing'
+import { getLocalePrefix, normalizeBase } from '../utils/routing'
 
-// ---------------------------------------------------------------------------
-// Route, router & site data
-// ---------------------------------------------------------------------------
-
-const route    = useRoute()
-const router   = useRouter()
+const route          = useRoute()
+const router         = useRouter()
 const { site, page } = useData()
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
 
 interface Crumb { text: string; link: string }
 
-// ---------------------------------------------------------------------------
-// Locale detection
-// ---------------------------------------------------------------------------
-
-const isRu = computed(() => isRussianPath(route.path, site.value.base))
-
-// ---------------------------------------------------------------------------
-// Computed breadcrumb list
-//
-// The label for the current (last) page is taken from page.title — the same
-// value that appears in the <title> tag — so it is always correct regardless
-// of the page name, and no manual SEGMENT_MAP is needed.
-// ---------------------------------------------------------------------------
+const HOME_LABELS: Record<string, string> = {
+  ru: 'Главная', zh: '首页', ko: '홈', ja: 'ホーム', en: 'Home',
+}
 
 const crumbs = computed<Crumb[]>(() => {
-  const base = normalizeBase(site.value.base)
+  const base   = normalizeBase(site.value.base)
+  const locale = getLocalePrefix(route.path, base) ?? 'en'
 
-  // Strip the base prefix to get the locale-relative path
   const clean = route.path.startsWith(base)
     ? route.path.slice(base.length)
     : route.path.replace(/^\//, '')
 
-  // Filter out the bare 'en' locale segment — it is a routing detail.
-  // We restore the locale prefix when building links (see accumulated below)
-  // so that EN breadcrumb links point to EN pages, not RU pages.
-  const parts = clean.split('/').filter(p => Boolean(p) && p !== 'ru')
+  const parts = clean.split('/').filter(p => Boolean(p) && p !== locale)
 
-  const result: Crumb[] = [{ text: isRu.value ? 'Главная' : 'Home', link: base }]
+  const result: Crumb[] = [{ text: HOME_LABELS[locale] ?? 'Home', link: base }]
 
-  // Prefix accumulated path with the locale segment when on RU pages
-  let accumulated = base + (isRu.value ? 'ru/' : '')
+  let accumulated = base + (locale !== 'en' ? `${locale}/` : '')
 
   for (let i = 0; i < parts.length; i++) {
-    const part = parts[i]
+    const part   = parts[i]
     accumulated += part + '/'
-
-    // For the last segment use the page's own title (from frontmatter) —
-    // it is always localised correctly and requires no manual mapping
     const isLast = i === parts.length - 1
     const label  = isLast
-      ? (page.value.title || part.charAt(0).toUpperCase() + part.slice(1).replace(/[-_]+/g, ' '))
-      : part.charAt(0).toUpperCase() + part.slice(1).replace(/[-_]+/g, ' ')
-
+      ? (page.value.title || capitalize(part))
+      : capitalize(part)
     result.push({ text: label, link: accumulated })
   }
 
   return result
 })
 
-// ---------------------------------------------------------------------------
-// Navigation — use VitePress router to avoid full page reload on SPA
-// ---------------------------------------------------------------------------
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1).replace(/[-_]+/g, ' ')
+}
 
 function navigate(e: MouseEvent, link: string): void {
   e.preventDefault()
@@ -81,7 +51,6 @@ function navigate(e: MouseEvent, link: string): void {
 </script>
 
 <template>
-  <!-- Render only when there is more than just the home crumb -->
   <nav v-if="crumbs.length > 1" class="breadcrumb" aria-label="Breadcrumb">
     <span v-for="(crumb, i) in crumbs" :key="crumb.link">
       <a
@@ -96,7 +65,6 @@ function navigate(e: MouseEvent, link: string): void {
 </template>
 
 <style scoped>
-/* ── Breadcrumb container ────────────────────────────────────────────────── */
 .breadcrumb {
   display:       flex;
   align-items:   center;
@@ -107,13 +75,8 @@ function navigate(e: MouseEvent, link: string): void {
   margin-bottom: 10px;
 }
 
-/* ── Links ───────────────────────────────────────────────────────────────── */
 .breadcrumb a       { color: var(--vp-c-text-2); text-decoration: none; transition: color 0.2s; }
 .breadcrumb a:hover { color: var(--vp-c-brand); }
-
-/* ── Active (last) segment ───────────────────────────────────────────────── */
-.current { color: var(--vp-c-text-1); font-weight: 500; }
-
-/* ── Separator ───────────────────────────────────────────────────────────── */
-.sep { opacity: 0.4; margin: 0 4px; }
+.current            { color: var(--vp-c-text-1); font-weight: 500; }
+.sep                { opacity: 0.4; margin: 0 4px; }
 </style>

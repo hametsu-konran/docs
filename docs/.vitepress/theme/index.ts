@@ -1,23 +1,11 @@
-// ---------------------------------------------------------------------------
-// Imports — VitePress / Vue core
-// ---------------------------------------------------------------------------
-
 import DefaultTheme from 'vitepress/theme'
 import { h, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { useData, useRoute } from 'vitepress'
 import type { EnhanceAppContext } from 'vitepress'
 
-// ---------------------------------------------------------------------------
-// Imports — third-party plugins
-// ---------------------------------------------------------------------------
-
 import mediumZoom from 'medium-zoom'
 import vitepressNprogress from 'vitepress-plugin-nprogress'
 import 'vitepress-plugin-nprogress/lib/css/index.css'
-
-// ---------------------------------------------------------------------------
-// Imports — local modules and components
-// ---------------------------------------------------------------------------
 
 import { setupMusicPlayer } from './musicPlayer'
 import { isHomePath } from './utils/routing'
@@ -33,12 +21,7 @@ import NotFound        from './components/NotFound.vue'
 
 import './custom.css'
 
-// ---------------------------------------------------------------------------
-// ZoomSetup — attaches medium-zoom to doc images; re-initialises on navigation
-// ---------------------------------------------------------------------------
-
 const ZoomSetup = {
-  name: 'ZoomSetup',
   setup() {
     const route = useRoute()
     let zoom: ReturnType<typeof mediumZoom> | null = null
@@ -49,18 +32,13 @@ const ZoomSetup = {
     }
 
     onMounted(() => nextTick(init))
-    watch(() => route.path.split('#')[0], () => nextTick(init))
+    watch(() => route.path, () => nextTick(init))
     onUnmounted(() => zoom?.detach())
   },
   render: () => null,
 }
 
-// ---------------------------------------------------------------------------
-// HeadingHighlight — underlines the hash-target heading for 2.5s after jump
-// ---------------------------------------------------------------------------
-
 const HeadingHighlight = {
-  name: 'HeadingHighlight',
   setup() {
     const route = useRoute()
     let clearTimer: ReturnType<typeof setTimeout> | null = null
@@ -78,29 +56,28 @@ const HeadingHighlight = {
       clearTimer = setTimeout(() => target.classList.remove('heading-highlighted'), 2500)
     }
 
-    onMounted(() => nextTick(highlight))
-    watch(() => route.hash, () => nextTick(highlight))
-    onUnmounted(() => { if (clearTimer) clearTimeout(clearTimer) })
+    const onHashChange = () => nextTick(highlight)
+
+    onMounted(() => {
+      nextTick(highlight)
+      window.addEventListener('hashchange', onHashChange)
+    })
+    watch(() => route.path, () => nextTick(highlight))
+    onUnmounted(() => {
+      window.removeEventListener('hashchange', onHashChange)
+      if (clearTimer) clearTimeout(clearTimer)
+    })
   },
   render: () => null,
 }
 
-// ---------------------------------------------------------------------------
-// ProgressWrapper — renders ReadingProgress only on non-home pages
-// ---------------------------------------------------------------------------
-
 const ProgressWrapper = {
-  name: 'ProgressWrapper',
   setup() {
     const route    = useRoute()
     const { site } = useData()
     return () => isHomePath(route.path, site.value.base) ? null : h(ReadingProgress)
   },
 }
-
-// ---------------------------------------------------------------------------
-// Theme export
-// ---------------------------------------------------------------------------
 
 export default {
   extends: DefaultTheme,
@@ -109,16 +86,16 @@ export default {
 
   Layout() {
     return h(DefaultTheme.Layout, null, {
-      'doc-before': () =>
-        h('div', { class: 'doc-tools' }, [
-          h(Breadcrumb),
-          h(ReadingTime),
-          h(ZoomSetup),
-          h(HeadingHighlight),
-          h(CopyHeadingLink),
-        ]),
+      'doc-before':    () => h('div', { class: 'doc-tools' }, [h(Breadcrumb), h(ReadingTime)]),
       'doc-after':     () => h(Copyright),
-      'layout-bottom': () => h('div', null, [h(ProgressWrapper), h(RickRoll), h(FrogFirework)]),
+      'layout-bottom': () => h('div', null, [
+        h(ZoomSetup),
+        h(HeadingHighlight),
+        h(CopyHeadingLink),
+        h(ProgressWrapper),
+        h(RickRoll),
+        h(FrogFirework),
+      ]),
     })
   },
 

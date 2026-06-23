@@ -1,46 +1,32 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, watch, computed } from 'vue'
 import { useData, useRoute } from 'vitepress'
-import { isRussianPath } from '../utils/routing'
+import { getLocalePrefix, normalizeBase } from '../utils/routing'
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-/** Average adult reading speed in words per minute. */
 const WORDS_PER_MINUTE = 200
-
-// ---------------------------------------------------------------------------
-// Reactive state
-// ---------------------------------------------------------------------------
 
 const wordCount   = ref(0)
 const readingTime = ref(0)
 
-// ---------------------------------------------------------------------------
-// Route & locale
-// ---------------------------------------------------------------------------
-
-const route = useRoute()
+const route    = useRoute()
 const { site } = useData()
 
-const isRu       = computed(() => isRussianPath(route.path, site.value.base))
-const labelWords = computed(() => isRu.value ? 'слов'    : 'words')
-const labelMin   = computed(() => isRu.value ? 'мин. чтения' : 'min read')
+const LABELS: Record<string, { words: string; min: string }> = {
+  ru: { words: 'слов',   min: 'мин. чтения' },
+  zh: { words: '字',     min: '分钟阅读' },
+  ko: { words: '단어',   min: '분 읽기' },
+  ja: { words: '語',     min: '分で読める' },
+  en: { words: 'words',  min: 'min read' },
+}
 
-// ---------------------------------------------------------------------------
-// Word count calculation
-// ---------------------------------------------------------------------------
+const locale     = computed(() => getLocalePrefix(route.path, normalizeBase(site.value.base)) ?? 'en')
+const labelWords = computed(() => (LABELS[locale.value] ?? LABELS.en).words)
+const labelMin   = computed(() => (LABELS[locale.value] ?? LABELS.en).min)
 
 function calculate(): void {
   const el = document.querySelector('.vp-doc')
-  if (!el) {
-    wordCount.value   = 0
-    readingTime.value = 0
-    return
-  }
+  if (!el) { wordCount.value = 0; readingTime.value = 0; return }
 
-  // Clone to strip UI-only nodes (copy buttons etc.) before counting
   const clone = el.cloneNode(true) as HTMLElement
   clone.querySelectorAll('.copy-heading-btn').forEach(b => b.remove())
 
@@ -49,14 +35,9 @@ function calculate(): void {
   readingTime.value = Math.max(1, Math.ceil(words / WORDS_PER_MINUTE))
 }
 
-/** Waits for Vue + browser paint before measuring so content is fully rendered. */
 function scheduleCalculate(): void {
   nextTick(() => requestAnimationFrame(calculate))
 }
-
-// ---------------------------------------------------------------------------
-// Lifecycle
-// ---------------------------------------------------------------------------
 
 onMounted(scheduleCalculate)
 watch(() => route.path, scheduleCalculate)
@@ -71,9 +52,7 @@ watch(() => route.path, scheduleCalculate)
       </svg>
       {{ wordCount }} {{ labelWords }}
     </span>
-
     <span class="sep" aria-hidden="true">·</span>
-
     <span class="meta-item">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
         <circle cx="12" cy="12" r="10"/>

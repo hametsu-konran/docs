@@ -1,40 +1,38 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useData, useRoute, useRouter } from 'vitepress'
-import { isRussianPath, normalizeBase } from '../utils/routing'
-
-// ---------------------------------------------------------------------------
-// Locale & navigation
-// ---------------------------------------------------------------------------
+import { getLocalePrefix, normalizeBase } from '../utils/routing'
 
 const { site } = useData()
-const route  = useRoute()
-const router = useRouter()
-const isRu   = computed(() => isRussianPath(route.path, normalizeBase(site.value.base)))
+const route    = useRoute()
+const router   = useRouter()
+
+const NOT_FOUND_STRINGS: Record<string, { title: string; quote: string; back: string }> = {
+  ru: { title: '🐸 Страница не найдена', quote: 'Похоже, эта страница потерялась в тумане войны. Жаба тоже не знает где она.',                             back: '← Вернуться на главную' },
+  zh: { title: '🐸 页面未找到',          quote: '看来这个页面在战争迷雾中迷失了。连青蛙也不知道它在哪里。',                                               back: '← 返回首页' },
+  ko: { title: '🐸 페이지를 찾을 수 없음', quote: '이 페이지는 전쟁의 안개 속에서 길을 잃은 것 같습니다. 개구리도 어디 있는지 모릅니다.',               back: '← 홈으로 돌아가기' },
+  ja: { title: '🐸 ページが見つかりません', quote: 'このページは戦争の霧の中で迷子になったようです。カエルもどこにあるか知りません。',                   back: '← ホームへ戻る' },
+  en: { title: '🐸 Page not found',     quote: "Looks like this page got lost in the fog of war. The frog doesn't know where it is either.", back: '← Back to home' },
+}
+
+const base   = computed(() => normalizeBase(site.value.base))
+const locale = computed(() => getLocalePrefix(route.path, base.value) ?? 'en')
+const s      = computed(() => NOT_FOUND_STRINGS[locale.value] ?? NOT_FOUND_STRINGS.en)
 
 function goHome(): void {
-  const base = normalizeBase(site.value.base)
-  router.go(isRussianPath(route.path, base) ? `${base}ru/` : base)
+  const l = locale.value
+  router.go(l !== 'en' ? `${base.value}${l}/` : base.value)
 }
 </script>
 
 <template>
   <div class="NotFound">
     <p class="code">404</p>
-    <h1 class="title">{{ isRu ? '🐸 Страница не найдена' : '🐸 Page not found' }}</h1>
+    <h1 class="title">{{ s.title }}</h1>
     <div class="divider" />
-    <blockquote class="quote">
-      {{
-        isRu
-          ? 'Похоже, эта страница потерялась в тумане войны. Жаба тоже не знает где она.'
-          : "Looks like this page got lost in the fog of war. The frog doesn't know where it is either."
-      }}
-    </blockquote>
+    <blockquote class="quote">{{ s.quote }}</blockquote>
     <div class="action">
-      <!-- Named class nf-btn avoids conflict with VitePress internal .NotFound .link selector -->
-      <button class="nf-btn" @click="goHome">
-        {{ isRu ? '← Вернуться на главную' : '← Back to home' }}
-      </button>
+      <button class="nf-btn" @click="goHome">{{ s.back }}</button>
     </div>
   </div>
 </template>
