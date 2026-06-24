@@ -1,4 +1,4 @@
-export const LOCALE_PREFIXES = ['ru', 'zh', 'ko', 'ja'] as const
+const LOCALE_PREFIXES = ['ru', 'zh', 'ko', 'ja'] as const
 
 export function normalizeBase(base: string): string {
   return base.endsWith('/') ? base : `${base}/`

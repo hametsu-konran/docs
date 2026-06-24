@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, watch } from 'vue'
-import { useData, useRoute } from 'vitepress'
-import { getLocalePrefix, normalizeBase } from '../utils/routing'
+import { onMounted, onUnmounted, watch } from 'vue'
+import { useRoute } from 'vitepress'
+import { useLocale } from '../utils/useLocale'
 
-const route    = useRoute()
-const { site } = useData()
+const route          = useRoute()
+const { locale }     = useLocale()
 
 const LABELS: Record<string, { copy: string; aria: string; copied: string }> = {
   ru: { copy: 'Скопировать ссылку', aria: 'Скопировать ссылку на заголовок', copied: 'Скопировано!' },
@@ -14,8 +14,6 @@ const LABELS: Record<string, { copy: string; aria: string; copied: string }> = {
   en: { copy: 'Copy link',          aria: 'Copy link to heading',            copied: 'Copied!' },
 }
 
-const locale = computed(() => getLocalePrefix(route.path, normalizeBase(site.value.base)) ?? 'en')
-
 interface Handler { el: HTMLElement; fn: () => void }
 let handlers: Handler[] = []
 
@@ -23,15 +21,6 @@ function cleanup(): void {
   for (const { el, fn } of handlers) el.removeEventListener('click', fn)
   handlers = []
   document.querySelectorAll('.copy-heading-btn').forEach(el => el.remove())
-}
-
-async function copyText(text: string): Promise<boolean> {
-  try {
-    await navigator.clipboard.writeText(text)
-    return true
-  } catch {
-    return false
-  }
 }
 
 function init(): void {
@@ -56,16 +45,12 @@ function init(): void {
         `<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>` +
       `</svg>`
 
-    let btnTimer: ReturnType<typeof setTimeout> | null = null
+    let timer: ReturnType<typeof setTimeout> | null = null
     const fn = async () => {
-      const ok = await copyText(`${base}#${id}`)
-      if (!ok) return
+      try { await navigator.clipboard.writeText(`${base}#${id}`) } catch { return }
       btn.classList.add('copied')
-      if (btnTimer) clearTimeout(btnTimer)
-      btnTimer = setTimeout(() => {
-        btn.classList.remove('copied')
-        btnTimer = null
-      }, 1800)
+      if (timer) clearTimeout(timer)
+      timer = setTimeout(() => { btn.classList.remove('copied'); timer = null }, 1800)
     }
 
     btn.addEventListener('click', fn)
@@ -74,8 +59,8 @@ function init(): void {
   })
 }
 
-onMounted(() => { requestAnimationFrame(init) })
-watch(() => route.path.split('#')[0], () => { requestAnimationFrame(init) })
+onMounted(() => requestAnimationFrame(init))
+watch(() => route.path.split('#')[0], () => requestAnimationFrame(init))
 onUnmounted(cleanup)
 </script>
 
@@ -113,7 +98,6 @@ h3:hover .copy-heading-btn     { color: rgba(84,160,255,0.5); }
   border:         1px solid rgba(255,255,255,0.18);
   border-radius:  6px;
   padding:        4px 16px;
-  line-height:    1.4;
   font-size:      12px;
   font-weight:    600;
   color:          #ffffff;

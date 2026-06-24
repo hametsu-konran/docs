@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, watch } from 'vue'
-import { useData, useRoute } from 'vitepress'
-import { isHomePath } from '../utils/routing'
+import { useRoute } from 'vitepress'
+import { useLocale } from '../utils/useLocale'
 
 const CLICKS_NEEDED = 7
 const RESET_DELAY   = 10000
 const TARGET_URL    = 'https://youtu.be/dQw4w9WgXcQ?si=3-SKpSMGFYWdsQlA'
 
-const route    = useRoute()
-const { site } = useData()
+const route      = useRoute()
+const { isHome } = useLocale()
 
 let count      = 0
 let resetTimer: ReturnType<typeof setTimeout> | null = null
@@ -40,7 +40,7 @@ function onDocumentClick(e: MouseEvent): void {
 }
 
 function activate(): void {
-  active = isHomePath(route.path, site.value.base)
+  active = isHome.value
   if (!active) {
     count = 0
     if (resetTimer) { clearTimeout(resetTimer); resetTimer = null }

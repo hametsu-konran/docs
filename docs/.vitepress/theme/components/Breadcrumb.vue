@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useData, useRoute, useRouter } from 'vitepress'
-import { getLocalePrefix, normalizeBase } from '../utils/routing'
+import { useLocale } from '../utils/useLocale'
 
-const route          = useRoute()
-const router         = useRouter()
-const { site, page } = useData()
+const route       = useRoute()
+const router      = useRouter()
+const { page }    = useData()
+const { locale, base } = useLocale()
 
 interface Crumb { text: string; link: string }
 
@@ -13,36 +14,34 @@ const HOME_LABELS: Record<string, string> = {
   ru: 'Главная', zh: '首页', ko: '홈', ja: 'ホーム', en: 'Home',
 }
 
-const crumbs = computed<Crumb[]>(() => {
-  const base   = normalizeBase(site.value.base)
-  const locale = getLocalePrefix(route.path, base) ?? 'en'
+function titleCase(s: string): string {
+  return s.replace(/[-_]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
 
-  const clean = route.path.startsWith(base)
-    ? route.path.slice(base.length)
+const crumbs = computed<Crumb[]>(() => {
+  const b = base.value
+  const l = locale.value
+
+  const clean = route.path.startsWith(b)
+    ? route.path.slice(b.length)
     : route.path.replace(/^\//, '')
 
-  const parts = clean.split('/').filter(p => Boolean(p) && p !== locale)
+  const parts = clean.split('/').filter(p => Boolean(p) && p !== l)
 
-  const result: Crumb[] = [{ text: HOME_LABELS[locale] ?? 'Home', link: base }]
+  const result: Crumb[] = [{ text: HOME_LABELS[l] ?? 'Home', link: b }]
 
-  let accumulated = base + (locale !== 'en' ? `${locale}/` : '')
+  let acc = b + (l !== 'en' ? `${l}/` : '')
 
   for (let i = 0; i < parts.length; i++) {
-    const part   = parts[i]
-    accumulated += part + '/'
-    const isLast = i === parts.length - 1
-    const label  = isLast
-      ? (page.value.title || capitalize(part))
-      : capitalize(part)
-    result.push({ text: label, link: accumulated })
+    acc += parts[i] + '/'
+    result.push({
+      text: i === parts.length - 1 ? (page.value.title || titleCase(parts[i])) : titleCase(parts[i]),
+      link: acc,
+    })
   }
 
   return result
 })
-
-function capitalize(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1).replace(/[-_]+/g, ' ')
-}
 
 function navigate(e: MouseEvent, link: string): void {
   e.preventDefault()

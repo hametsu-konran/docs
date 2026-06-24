@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, watch } from 'vue'
-import { useData, useRoute } from 'vitepress'
-import { isHomePath } from '../utils/routing'
+import { useRoute } from 'vitepress'
+import { useLocale } from '../utils/useLocale'
 
 const HOLD_DURATION  = 1500
 const FROG_EMOJI     = '🐸'
 const MOVE_THRESHOLD = 8
 const TOTAL_FROGS    = 22
 
-const route    = useRoute()
-const { site } = useData()
+const route      = useRoute()
+const { isHome } = useLocale()
 
 let active     = false
 let holdTimer:  ReturnType<typeof setTimeout> | null = null
@@ -234,7 +234,7 @@ function detach(): void {
 }
 
 function activate(): void {
-  active = isHomePath(route.path, site.value.base)
+  active = isHome.value
   attach()
 }
 

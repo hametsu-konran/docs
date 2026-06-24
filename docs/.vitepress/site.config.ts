@@ -1,15 +1,11 @@
-const GITHUB_USER = 'hametsu-konran'
-const REPO_NAME   = 'docs'
+export const BASE_PATH = '/docs/'
+export const SITE_HOSTNAME = 'https://etephym.github.io'
+export const FULL_URL = `${SITE_HOSTNAME}${BASE_PATH}`
 
-export const SITE_HOSTNAME = 'https://hametsu-konran.github.io'
-
-export const BASE_PATH = `/${REPO_NAME}/`
-export const FULL_URL  = `${SITE_HOSTNAME}${BASE_PATH}`
-
-export const GITHUB_REPO_URL = `https://github.com/${GITHUB_USER}/${REPO_NAME}`
+export const GITHUB_REPO_URL = 'https://github.com/etephym/docs'
 export const EDIT_LINK       = `${GITHUB_REPO_URL}/edit/main/docs/:path`
 
 export const DISCORD_URL  = 'https://discord.gg/cmCpgkb5zq'
-export const TELEGRAM_URL = 'https://t.me/ezrqq'
+export const TELEGRAM_URL = 'https://t.me/etephym'
 
 export const AUDIO_SRC = `${BASE_PATH}${encodeURIComponent('Zerofuturism - a coldcore ambient playlist.mp3')}`

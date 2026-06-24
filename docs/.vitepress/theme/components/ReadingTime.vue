@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, watch, computed } from 'vue'
-import { useData, useRoute } from 'vitepress'
-import { getLocalePrefix, normalizeBase } from '../utils/routing'
+import { useRoute } from 'vitepress'
+import { useLocale } from '../utils/useLocale'
 
 const WORDS_PER_MINUTE = 200
 
 const wordCount   = ref(0)
 const readingTime = ref(0)
 
-const route    = useRoute()
-const { site } = useData()
+const route      = useRoute()
+const { locale } = useLocale()
 
 const LABELS: Record<string, { words: string; min: string }> = {
   ru: { words: 'слов',   min: 'мин. чтения' },
@@ -19,9 +19,7 @@ const LABELS: Record<string, { words: string; min: string }> = {
   en: { words: 'words',  min: 'min read' },
 }
 
-const locale     = computed(() => getLocalePrefix(route.path, normalizeBase(site.value.base)) ?? 'en')
-const labelWords = computed(() => (LABELS[locale.value] ?? LABELS.en).words)
-const labelMin   = computed(() => (LABELS[locale.value] ?? LABELS.en).min)
+const labels = computed(() => LABELS[locale.value] ?? LABELS.en)
 
 function calculate(): void {
   const el = document.querySelector('.vp-doc')
@@ -35,12 +33,10 @@ function calculate(): void {
   readingTime.value = Math.max(1, Math.ceil(words / WORDS_PER_MINUTE))
 }
 
-function scheduleCalculate(): void {
-  nextTick(() => requestAnimationFrame(calculate))
-}
+function run(): void { nextTick(() => requestAnimationFrame(calculate)) }
 
-onMounted(scheduleCalculate)
-watch(() => route.path, scheduleCalculate)
+onMounted(run)
+watch(() => route.path, run)
 </script>
 
 <template>
@@ -50,7 +46,7 @@ watch(() => route.path, scheduleCalculate)
         <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
         <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
       </svg>
-      {{ wordCount }} {{ labelWords }}
+      {{ wordCount }} {{ labels.words }}
     </span>
     <span class="sep" aria-hidden="true">·</span>
     <span class="meta-item">
@@ -58,7 +54,7 @@ watch(() => route.path, scheduleCalculate)
         <circle cx="12" cy="12" r="10"/>
         <polyline points="12 6 12 12 16 14"/>
       </svg>
-      {{ readingTime }} {{ labelMin }}
+      {{ readingTime }} {{ labels.min }}
     </span>
   </div>
 </template>

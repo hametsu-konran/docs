@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
-import { useData, useRoute } from 'vitepress'
-import { getLocalePrefix, normalizeBase } from '../utils/routing'
+import { useRoute } from 'vitepress'
+import { useLocale } from '../utils/useLocale'
 
 const SIZE   = 48
 const RADIUS = 20
@@ -11,8 +11,8 @@ const progress = ref(0)
 const visible  = ref(false)
 const idle     = ref(false)
 
-const route    = useRoute()
-const { site } = useData()
+const route      = useRoute()
+const { locale } = useLocale()
 
 const LABELS: Record<string, { read: string; top: string }> = {
   ru: { read: 'прочитано', top: 'Наверх' },
@@ -22,12 +22,12 @@ const LABELS: Record<string, { read: string; top: string }> = {
   en: { read: 'read',      top: 'Back to top' },
 }
 
-const locale = computed(() => getLocalePrefix(route.path, normalizeBase(site.value.base)) ?? 'en')
-
 const titleLabel = computed(() => {
   const l = LABELS[locale.value] ?? LABELS.en
   return idle.value ? l.top : `${progress.value}% ${l.read}`
 })
+
+const strokeOffset = (pct: number) => CIRCUM * (1 - pct / 100)
 
 let idleTimer: ReturnType<typeof setTimeout> | null = null
 let total      = 0
@@ -42,15 +42,12 @@ function calcTotal(): void {
 }
 
 function update(): void {
-  const scrollY = window.scrollY
-  if (scrollY === lastScroll) return
-  lastScroll = scrollY
+  const y = window.scrollY
+  if (y === lastScroll) return
+  lastScroll = y
 
-  progress.value = total <= 0 || scrollY <= 0
-    ? 0
-    : scrollY >= total ? 100 : Math.round((scrollY / total) * 100)
-
-  visible.value = scrollY > 100
+  progress.value = total <= 0 || y <= 0 ? 0 : y >= total ? 100 : Math.round((y / total) * 100)
+  visible.value  = y > 100
   if (idle.value) idle.value = false
 
   if (idleTimer) clearTimeout(idleTimer)
@@ -60,11 +57,8 @@ function update(): void {
 function onResize(): void { calcTotal(); update() }
 
 function scrollToTop(): void {
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' })
+  window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
 }
-
-const strokeOffset = (pct: number) => CIRCUM - (pct / 100) * CIRCUM
 
 watch(() => route.path, () => {
   progress.value = 0
@@ -103,9 +97,9 @@ onUnmounted(() => {
       @keydown.space.prevent="scrollToTop"
     >
       <svg :width="SIZE" :height="SIZE" class="rp-ring" aria-hidden="true">
-        <circle :cx="SIZE / 2" :cy="SIZE / 2" :r="RADIUS" fill="none" stroke="rgba(84,160,255,0.12)" stroke-width="2.5" />
+        <circle :cx="SIZE/2" :cy="SIZE/2" :r="RADIUS" fill="none" stroke="rgba(84,160,255,0.12)" stroke-width="2.5" />
         <circle
-          :cx="SIZE / 2" :cy="SIZE / 2" :r="RADIUS"
+          :cx="SIZE/2" :cy="SIZE/2" :r="RADIUS"
           fill="none" stroke="#54a0ff" stroke-width="2.5"
           stroke-linecap="round"
           :stroke-dasharray="CIRCUM"
@@ -153,11 +147,11 @@ html:not(.dark) .rp-wrap:hover { box-shadow: 0 0 22px rgba(37,99,235,0.25); }
 .rp-ring { position: absolute; inset: 0; overflow: visible; }
 .rp-arc  { transition: none; }
 
-.rp-label                  { font-size: 11px; font-weight: 600; color: #54a0ff; line-height: 1; }
-html:not(.dark) .rp-label  { color: #2563eb; }
+.rp-label                 { font-size: 11px; font-weight: 600; color: #54a0ff; line-height: 1; }
+html:not(.dark) .rp-label { color: #2563eb; }
 
-.rp-arrow                  { display: flex; align-items: center; color: #54a0ff; }
-html:not(.dark) .rp-arrow  { color: #2563eb; }
+.rp-arrow                 { display: flex; align-items: center; color: #54a0ff; }
+html:not(.dark) .rp-arrow { color: #2563eb; }
 
 .icon-swap-enter-active,
 .icon-swap-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }

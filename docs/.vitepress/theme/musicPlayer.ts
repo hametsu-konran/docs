@@ -1,19 +1,21 @@
-import { AUDIO_SRC } from '../site.config'
+import { AUDIO_SRC, BASE_PATH } from '../site.config'
 
 const POS_KEY = 'mp-pos'
 
 type Labels = { idle: string; playing: string; play: string; pause: string }
 
 const LABELS: Record<string, Labels> = {
-  ru: { idle: 'Фоновая музыка', playing: 'Играет...', play: 'Играть', pause: 'Пауза' },
-  zh: { idle: '背景音乐',       playing: '播放中...',  play: '播放',   pause: '暂停' },
-  ko: { idle: '배경 음악',      playing: '재생 중...',  play: '재생',   pause: '일시정지' },
-  ja: { idle: 'BGM',            playing: '再生中...',   play: '再生',   pause: '一時停止' },
-  en: { idle: 'Background music', playing: 'Playing...', play: 'Play', pause: 'Pause' },
+  ru: { idle: 'Фоновая музыка',   playing: 'Играет...',   play: 'Играть', pause: 'Пауза' },
+  zh: { idle: '背景音乐',          playing: '播放中...',   play: '播放',   pause: '暂停' },
+  ko: { idle: '배경 음악',         playing: '재생 중...', play: '재생',   pause: '일시정지' },
+  ja: { idle: 'BGM',               playing: '再生中...',   play: '再生',   pause: '一時停止' },
+  en: { idle: 'Background music',  playing: 'Playing...',  play: 'Play',   pause: 'Pause' },
 }
 
 function getLocale(): string {
-  const seg = window.location.pathname.split('/')[1]
+  const path = window.location.pathname
+  const rel  = path.startsWith(BASE_PATH) ? path.slice(BASE_PATH.length) : path.replace(/^\//, '')
+  const seg  = rel.split('/')[0]
   return seg in LABELS ? seg : 'en'
 }
 
@@ -99,11 +101,11 @@ export function setupMusicPlayer(): void {
       setPlaying(false)
     } else {
       setPlaying(true)
-      audio.play().catch(() => { setPlaying(false) })
+      audio.play().catch(() => setPlaying(false))
     }
   })
 
-  audio.addEventListener('error', () => { setPlaying(false) })
+  audio.addEventListener('error', () => setPlaying(false))
 
   function dragStart(clientX: number, clientY: number): void {
     const rect            = root.getBoundingClientRect()

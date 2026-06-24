@@ -1,6 +1,6 @@
 import DefaultTheme from 'vitepress/theme'
 import { h, nextTick, onMounted, onUnmounted, watch } from 'vue'
-import { useData, useRoute } from 'vitepress'
+import { useRoute } from 'vitepress'
 import type { EnhanceAppContext } from 'vitepress'
 
 import mediumZoom from 'medium-zoom'
@@ -8,7 +8,7 @@ import vitepressNprogress from 'vitepress-plugin-nprogress'
 import 'vitepress-plugin-nprogress/lib/css/index.css'
 
 import { setupMusicPlayer } from './musicPlayer'
-import { isHomePath } from './utils/routing'
+import { useLocale } from './utils/useLocale'
 
 import Breadcrumb      from './components/Breadcrumb.vue'
 import ReadingTime     from './components/ReadingTime.vue'
@@ -73,19 +73,17 @@ const HeadingHighlight = {
 
 const ProgressWrapper = {
   setup() {
-    const route    = useRoute()
-    const { site } = useData()
-    return () => isHomePath(route.path, site.value.base) ? null : h(ReadingProgress)
+    const { isHome } = useLocale()
+    return () => isHome.value ? null : h(ReadingProgress)
   },
 }
 
 export default {
   extends: DefaultTheme,
 
-  NotFound,
-
   Layout() {
     return h(DefaultTheme.Layout, null, {
+      'not-found':     () => h(NotFound),
       'doc-before':    () => h('div', { class: 'doc-tools' }, [h(Breadcrumb), h(ReadingTime)]),
       'doc-after':     () => h(Copyright),
       'layout-bottom': () => h('div', null, [
